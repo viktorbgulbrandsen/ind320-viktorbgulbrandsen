@@ -26,6 +26,18 @@ SERIES = [
     "fill_level_change",
 ]
 
+#readable names with units, for headers, legends and axes
+NAMES = {
+    "fill_level": "Fill level (%)",
+    "capacity_TWh": "Capacity (TWh)",
+    "fill_TWh": "Fill (TWh)",
+    "fill_level_prev_week": "Fill level previous week (%)",
+    "fill_level_change": "Change from previous week (% points)",
+}
+
+#these come as shares from 0 to 1, shown as percent
+PERCENT = ["fill_level", "fill_level_prev_week", "fill_level_change"]
+
 
 #whole history, the endpoint has no date parameters
 def fetch_reservoirs():
