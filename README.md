@@ -1,17 +1,22 @@
 # IND320 dashboard
 
-Project work for IND320 Data to Decision at NMBU. 
+Project work for IND320 Data to Decision at NMBU.
 
-For the first part, we make a Streamlit app for Norwegian reservior filling data.
+The work comes in four parts that build on each other. Each part has its own folder, so it is clear what belongs to which hand-in. A folder is not changed after its part is handed in.
 
-## Setup 
+- 'project1/': part 1, a Streamlit app for Norwegian reservoir filling data, read from a CSV.
+- 'project2/': part 2, the same data from the NVE API, cross-border power flows from ENTSO-E through Cassandra, Spark and MongoDB, and the app on top of that.
+
+Each folder has its own README.
+
+## Setup
 The project uses [uv](https://docs.astral.sh/uv/).
 
 ```bash
 uv sync
 ```
 
-This installs both the app packages and the Jupyter for the notebook. Note that 'requirements.txt' holds only the packages for the Streamlit app, while the Jupyter is synced from the 'uv.lock'. 
+This installs the app packages and Jupyter for the notebooks. Spark and the Cassandra driver are in the dev group, they are only needed for the part 2 notebook. Python 3.12, since Spark does not run on 3.14.
 
 ## Run the app
 
@@ -19,29 +24,4 @@ This installs both the app packages and the Jupyter for the notebook. Note that 
 uv run streamlit run project2/streamlit_app.py
 ```
 
-Each part of the project work has its own folder. 'project1/' is part 1 as it was handed in and is not changed afterwards. 'project2/' builds on it, reusing the part 1 pages and adding new ones.
-
-
-## Pages on the app
-
-- **Home**: index for the app, information
-- **Data table**: showing the reservoir data in table format
-- **Plot**: showing the reservoir data by plot
-- **Latest week**: showing last week of the data
-
-## Data
-
-'project1/data/reservoirs.csv' is from the course repository [khliland/IND320](https://github.com/khliland/IND320). It has weekly reservoir data from 1995 to 2026 for 9 areas. The table and plot pages use the national total.
-
-## Structure
-
-```
-project1/
-  streamlit_app.py   sidebar menu
-  reservoirs.py      cached CSV loader, English column names
-  pages/             one file per page
-  part1.ipynb        the data work and the log
-  data/              reservoirs.csv
-project2/
-  streamlit_app.py   sidebar menu, part 1 pages plus the new ones
-```
+The live app at streamlit.app runs the same file. Each 'projectN/requirements.txt' holds only the packages the app itself needs.
