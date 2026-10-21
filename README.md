@@ -24,4 +24,4 @@ This installs the app packages and Jupyter for the notebooks. Spark and the Cass
 uv run streamlit run project2/streamlit_app.py
 ```
 
-The live app at streamlit.app runs the same file. Each 'projectN/requirements.txt' holds only the packages the app itself needs.
+The live app at streamlit.app runs 'streamlit_app.py' at the root, which just loads the pages from 'project2/'. The link has to stay the same through all four parts, and streamlit.app only looks for the file at the root. Each 'projectN/requirements.txt' holds only the packages the app itself needs.
