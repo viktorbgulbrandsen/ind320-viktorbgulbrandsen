@@ -1,11 +1,21 @@
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from scipy.fft import dct, idct
+from scipy.signal import stft
 from scipy.stats import median_abs_deviation
 from sklearn.neighbors import LocalOutlierFactor
+from statsmodels.tsa.seasonal import STL
 
 YEAR = pd.Timedelta(days=365.25)
+
+
+#rows in one year
+#8766 for hourly weather and 52 for the weekly reservoir data
+def per_year(series):
+    step = series.index[1] - series.index[0]
+    return YEAR / step
 
 
 #the plot is labelled with the name of the series
@@ -73,3 +83,46 @@ def lof_anomalies(series, contamination=0.01):
     anomalies = pd.DataFrame({"time": series.index[flagged], "value": values[flagged], "lof": scores[flagged]})
     summary = {"n_anomalies": len(anomalies), "share": flagged.mean(), "anomalies": anomalies}
     return fig, summary
+
+
+#one season is one year
+def stl_plot(series, seasonal=13, trend=105, robust=False):
+    period = round(per_year(series))
+    stl = STL(series, period=period, seasonal=seasonal, trend=trend, robust=robust)
+    fit = stl.fit()
+
+    names = ["Observed", "Trend", "Seasonal", "Residual"]
+    parts = [fit.observed, fit.trend, fit.seasonal, fit.resid]
+    fig = make_subplots(rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.06, subplot_titles=names)
+    for row in range(4):
+        fig.add_scatter(x=series.index, y=parts[row], line_color="steelblue", row=row + 1, col=1)
+    fig.update_xaxes(title_text="Date", row=4, col=1)
+    title = f"{series.name}, STL (seasonal {seasonal}, trend {trend})"
+    fig.update_layout(title=title, height=800, showlegend=False)
+    return fig
+
+
+def spectrogram_plot(series, window_length=104, overlap=78):
+    values = series.to_numpy(dtype=float)
+
+    #fs is rows per year so the frequencies come out in cycles per year
+    #detrend takes away the mean of each window
+    #no boundary and no padding so every window lies fully inside the data
+    fs = per_year(series)
+    frequency, years, z = stft(values, fs=fs, nperseg=window_length, noverlap=overlap,
+                               detrend="constant", boundary=None, padded=False)
+    #the windows come back as years since the start
+    centres = series.index[0] + pd.to_timedelta(years * 365.25, unit="D")
+
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.35, 0.65])
+    fig.add_scatter(x=series.index, y=values, line_color="steelblue", row=1, col=1)
+    #the colour bar is kept beside the heatmap
+    colorbar = dict(title="Amplitude", len=0.65, y=0, yanchor="bottom")
+    fig.add_heatmap(x=centres, y=frequency, z=np.abs(z), colorscale="Viridis", colorbar=colorbar, row=2, col=1)
+    fig.update_yaxes(title_text=series.name, row=1, col=1)
+    #above 6 cycles per year the reservoirs show nothing
+    fig.update_yaxes(title_text="Frequency (cycles per year)", range=[0, 6], row=2, col=1)
+    fig.update_xaxes(title_text="Date", row=2, col=1)
+    title = f"{series.name}, spectrogram (window {window_length}, overlap {overlap})"
+    fig.update_layout(title=title, height=650, showlegend=False)
+    return fig
