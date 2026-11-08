@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -18,6 +19,8 @@ VARIABLES = [
     "shortwave_radiation",
     "et0_fao_evapotranspiration",
 ]
+#the app only needs these two
+APP_VARIABLES = ["precipitation", "temperature_2m"]
 
 #open-meteo counts a year for one point as about 26 calls
 #the free limit is 600 calls a minute so 19 points fit in one request
@@ -93,3 +96,38 @@ def region_mean(df):
     #asfreq makes sure there is a row for every hour
     means = means.asfreq("h")
     return means.reset_index()
+
+
+#the app uses the first 50 of the 1000 points
+def app_points(region):
+    with open(DATA / "points_50.json") as file:
+        points = json.load(file)[region]
+    return pd.DataFrame(points, columns=["lon", "lat"])
+
+
+def download_area(region, year):
+    points = app_points(region)
+    frames = download(points, f"{year}-01-01", f"{year}-12-31", APP_VARIABLES)
+    #mean over the 50 points for every hour
+    hourly = pd.concat(frames)
+    means = hourly.groupby("time").mean()
+    return means.asfreq("h")
+
+
+#the page calls this
+#the weather of an area is one document in mongodb
+#it is only downloaded when the document is missing
+def area_weather(collection, region, year):
+    name = f"{region}_{year}"
+    document = collection.find_one({"_id": name})
+    if document is None:
+        series = download_area(region, year)
+        document = {"_id": name, "region": region, "year": year, "n_points": 50}
+        document["time"] = list(series.index.to_pydatetime())
+        for variable in APP_VARIABLES:
+            document[variable] = series[variable].tolist()
+        collection.replace_one({"_id": name}, document, upsert=True)
+
+    hours = pd.DatetimeIndex(document["time"], name="time")
+    values = {variable: document[variable] for variable in APP_VARIABLES}
+    return pd.DataFrame(values, index=hours)
