@@ -1,6 +1,5 @@
 #ignore venv
 .venv
 __pycache__/
-# secrets, never committed
 .env
 .streamlit/secrets.toml

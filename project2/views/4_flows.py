@@ -76,6 +76,6 @@ with right:
 #document the source
 with st.expander("About the data"):
     st.write("The flows are the physical cross-border flows between Norway and its neighbours, in MW, from the ENTSO-E transparency platform.")
-    st.write("The flows go ENTSO-E API → Cassandra via Spark → MongoDB, which the app reads.")
+    st.write("The flows are fetched from the ENTSO-E API, written to Cassandra with Spark and then to MongoDB, which the app reads.")
     st.write("They cover the last two years, and the times are UTC.")
     st.write("Export is the flow out of Norway and import the flow into Norway.")

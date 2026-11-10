@@ -1,12 +1,9 @@
-#import path
-from pathlib import Path
-
 #import needed modules
 import pandas as pd
 import streamlit as st
 
-# set correct path
-CSV = Path(__file__).parent / "data" / "reservoirs.csv"
+# the csv is read straight from the course repository
+CSV = "https://raw.githubusercontent.com/khliland/IND320/main/D2Dbook/data/reservoirs.csv"
 
 #translate to norwegian
 COLUMNS = {
